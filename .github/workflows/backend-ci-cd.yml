@@ -47,7 +47,7 @@ jobs:
 
             - name: Install dependencies and setup .env file
               run: |
-                  cd backend/
+                  cd backend/MuchToDo/
                   go mod download
 
             - name: Scan code for exposed secrets
@@ -57,12 +57,12 @@ jobs:
 
             - name: Run the unit tests for Go
               run: |
-                  cd backend/
+                  cd backend/MuchToDo/
                   go test ./...
 
             - name: Run integration tests for Go
               run: |
-                  cd backend/
+                  cd backend/MuchToDo/
                   INTEGRATION=true go test -v --tags=integration ./...
 
             - name: Build the docker image

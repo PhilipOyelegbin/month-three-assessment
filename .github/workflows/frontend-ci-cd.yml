@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies and setup .env file
         run: |
           cd frontend/
-          ci
+          npm install
 
       - name: Scan code for exposed secrets
         uses: github/codeql-action/analyze@v2
