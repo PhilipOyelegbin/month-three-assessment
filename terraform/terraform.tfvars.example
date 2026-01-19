@@ -1,0 +1,3 @@
+project_name = "muchtodo"
+aws_region   = "eu-west-2"
+cidr_range   = "0.0.0.0/0"
