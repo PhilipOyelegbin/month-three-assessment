@@ -35,7 +35,9 @@ jobs:
       #     category: "secret-scanning"
 
       - name: Build frontend app
-        run: npm run build
+        run: |
+          cd frontend/
+          npm run build
         env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
 
