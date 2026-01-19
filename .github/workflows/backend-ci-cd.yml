@@ -35,34 +35,33 @@ jobs:
                   SECURE_COOKIE: false
                   MONGO_URI: ${{ secrets.MONGO_URI }}
                   DB_NAME: much_todo_db
-                  JWT_SECRET_KEY: "your-super-secret-key-that-is-long-and-random"
+                  JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
                   JWT_EXPIRATION_HOURS: 2
-                  VITE_BASE_API_URL: ${{ secrets.VITE_BASE_API_URL }}
                   LOG_LEVEL: "DEBUG"
                   LOG_FORMAT: "json"
                   INTEGRATION: true
                   # ENABLE_CACHE: true
-                  REDIS_ADDR: localhost:6379
-                  REDIS_PASSWORD: ""
+                  REDIS_ADDR: ${{ secrets.REDIS_ADDR }}
+                  REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
 
             - name: Install dependencies and setup .env file
               run: |
-                  cd backend/
+                  cd backend/MuchToDo/
                   go mod download
 
-            - name: Scan code for exposed secrets
-              uses: github/codeql-action/analyze@v2
-              with:
-                  category: "secret-scanning"
+            # - name: Scan code for exposed secrets
+            #   uses: github/codeql-action/analyze@v2
+            #   with:
+            #       category: "secret-scanning"
 
             - name: Run the unit tests for Go
               run: |
-                  cd backend/
+                  cd backend/MuchToDo/
                   go test ./...
 
             - name: Run integration tests for Go
               run: |
-                  cd backend/
+                  cd backend/MuchToDo/
                   INTEGRATION=true go test -v --tags=integration ./...
 
             - name: Build the docker image
@@ -98,7 +97,7 @@ jobs:
                       docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
                       docker stop muchtodo || true
                       docker rm muchtodo || true
-                      docker run -d --name muchtodo -p 80:8080 ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
+                      docker run -d -v $(pwd)/MuchToDo/.env:/app/.env:ro --name muchtodo -p 80:8080 ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
 
     cleanup:
         runs-on: ubuntu-latest

@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies and setup .env file
         run: |
           cd frontend/
-          ci
+          npm install
 
       # - name: Scan code for exposed secrets
       #   uses: github/codeql-action/analyze@v2
@@ -35,7 +35,9 @@ jobs:
       #     category: "secret-scanning"
 
       - name: Build frontend app
-        run: npm run build
+        run: |
+          cd frontend/
+          npm run build
         env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
 
@@ -74,7 +76,7 @@ jobs:
       - name: Deploy Frontend to AWS S3
         run: |
           cd frontend/
-          aws s3 sync dist/ s3://expense-tracker-0byqods6 --delete
+          aws s3 sync dist/ s3://${{ secrets.BUCKET_NAME }} --delete
 
   cleanup:
     runs-on: ubuntu-latest
@@ -82,22 +84,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - name: Install dependencies
-        run: |
-          cd apps/backend
-          pnpm install --no-frozen-lockfile
-          pnpm install -g serverless@3.39.0
 
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v4
@@ -108,9 +94,5 @@ jobs:
 
       - name: Clean up resources
         run: |
-          aws s3 rm s3://expense-tracker-0byqods6 --recursive || echo "S3 bucket might not exist"
-          cd apps/backend
-          serverless remove --stage prod
-        env:
-          MONGO_URI: ${{ secrets.MONGO_URI }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          aws s3 rm s3://${{ secrets.BUCKET_NAME }} --recursive || echo "S3 bucket might not exist"
+          echo "Cleanup completed."
