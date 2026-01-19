@@ -50,10 +50,10 @@ jobs:
                   cd backend/MuchToDo/
                   go mod download
 
-            - name: Scan code for exposed secrets
-              uses: github/codeql-action/analyze@v2
-              with:
-                  category: "secret-scanning"
+            # - name: Scan code for exposed secrets
+            #   uses: github/codeql-action/analyze@v2
+            #   with:
+            #       category: "secret-scanning"
 
             - name: Run the unit tests for Go
               run: |

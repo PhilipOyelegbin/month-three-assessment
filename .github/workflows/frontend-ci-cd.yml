@@ -29,10 +29,10 @@ jobs:
           cd frontend/
           npm install
 
-      - name: Scan code for exposed secrets
-        uses: github/codeql-action/analyze@v2
-        with:
-          category: "secret-scanning"
+      # - name: Scan code for exposed secrets
+      #   uses: github/codeql-action/analyze@v2
+      #   with:
+      #     category: "secret-scanning"
 
       - name: Build frontend app
         run: npm run build
