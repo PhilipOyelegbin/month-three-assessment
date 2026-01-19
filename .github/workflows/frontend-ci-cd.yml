@@ -75,7 +75,7 @@ jobs:
 
       - name: Deploy Frontend to AWS S3
         run: |
-          aws s3 sync dist/ s3://${{ secrets.BUCKET_NAME }} --delete
+          aws s3 sync . s3://${{ secrets.BUCKET_NAME }} --delete
 
   cleanup:
     runs-on: ubuntu-latest

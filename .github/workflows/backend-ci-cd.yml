@@ -93,11 +93,30 @@ jobs:
                   key: ${{ secrets.SERVER_SSH_KEY }}
                   port: ${{ secrets.SERVER_SSH_PORT }}
                   script: |
+                      echo "--- Creating .env file ---"
+                      cat <<'EOF' > .env
+                      PORT=8080
+                      ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+                      COOKIE_DOMAINS=localhost,example.com
+                      SECURE_COOKIE=false
+                      MONGO_URI=${{ secrets.MONGO_URI }}
+                      DB_NAME=much_todo_db
+                      JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+                      JWT_EXPIRATION_HOURS=2
+                      LOG_LEVEL=INFO
+                      LOG_FORMAT=json
+                      INTEGRATION=false
+                      # ENABLE_CACHE=true
+                      REDIS_ADDR=${{ secrets.REDIS_ADDR }}
+                      REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+                      EOF
+
+                      echo "--- Deploying the latest Docker image ---"
                       sudo docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
                       sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
                       sudo docker stop muchtodo || true
                       sudo docker rm muchtodo || true
-                      sudo docker run -d -v $(pwd)/MuchToDo/.env:/app/.env:ro --name muchtodo -p 80:8080 ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
+                      sudo docker run -d -v $(pwd)/.env:/app/.env:ro --name muchtodo -p 80:8080 ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
     cleanup:
         runs-on: ubuntu-latest
         if: github.event_name == 'push' && github.ref == 'refs/heads/clean'
