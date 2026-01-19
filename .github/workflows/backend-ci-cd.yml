@@ -93,12 +93,11 @@ jobs:
                   key: ${{ secrets.SERVER_SSH_KEY }}
                   port: ${{ secrets.SERVER_SSH_PORT }}
                   script: |
-                      docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-                      docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
-                      docker stop muchtodo || true
-                      docker rm muchtodo || true
-                      docker run -d -v $(pwd)/MuchToDo/.env:/app/.env:ro --name muchtodo -p 80:8080 ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
-
+                      sudo docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+                      sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
+                      sudo docker stop muchtodo || true
+                      sudo docker rm muchtodo || true
+                      sudo docker run -d -v $(pwd)/MuchToDo/.env:/app/.env:ro --name muchtodo -p 80:8080 ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
     cleanup:
         runs-on: ubuntu-latest
         if: github.event_name == 'push' && github.ref == 'refs/heads/clean'
@@ -111,8 +110,8 @@ jobs:
                   key: ${{ secrets.SERVER_SSH_KEY }}
                   port: ${{ secrets.SERVER_SSH_PORT }}
                   script: |
-                      docker stop muchtodo || true
-                      docker rm muchtodo || true
-                      docker rmi ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest || true
-                      docker system prune -af
+                      sudo docker stop muchtodo || true
+                      sudo docker rm muchtodo || true
+                      sudo docker rmi ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest || true
+                      sudo docker system prune -af
                       echo "Cleanup completed."
