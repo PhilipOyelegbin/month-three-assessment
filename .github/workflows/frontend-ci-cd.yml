@@ -46,7 +46,7 @@ jobs:
         with:
           name: frontend-build
           path: |
-            frontend/dist
+            frontend/dist/
 
   deploy:
     runs-on: ubuntu-latest
@@ -68,14 +68,13 @@ jobs:
       - name: List directory structure (debug)
         run: |
           ls -la
-          echo "---"
-          ls -la frontend/ || echo "No frontend directory"
-          echo "---"
-          ls -la frontend/dist/ || echo "No dist directory"
+          # echo "---"
+          # ls -la frontend/ || echo "No frontend directory"
+          # echo "---"
+          # ls -la frontend/dist/ || echo "No dist directory"
 
       - name: Deploy Frontend to AWS S3
         run: |
-          cd frontend/
           aws s3 sync dist/ s3://${{ secrets.BUCKET_NAME }} --delete
 
   cleanup:
