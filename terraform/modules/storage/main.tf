@@ -2,6 +2,7 @@
 # Create S3 Bucket for frontend deployment
 resource "aws_s3_bucket" "s3_bucket" {
   bucket = var.bucket_name
+  force_destroy  = true
 
   tags = {
     Name = "${var.project_name}-bucket"
@@ -50,7 +51,7 @@ resource "aws_s3_bucket_public_access_block" "block_public_access" {
 resource "aws_s3_bucket_versioning" "versioning" {
   bucket = aws_s3_bucket.s3_bucket.id
   versioning_configuration {
-    status = "Enabled"
+    status = "Disabled"
   }
 }
 

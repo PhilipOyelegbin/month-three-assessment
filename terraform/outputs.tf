@@ -8,7 +8,7 @@ output "resource_details" {
     asg_id            = module.compute.output_details.asg_id
     asg_public_ips    = module.compute.output_details.asg_public_ips
     load_balancer_dns = module.compute.output_details.alb
-    s3_endpoint       = module.storage.output_details.s3_endpoint
+    s3_bucket       = module.storage.output_details.bucket_name
     cloudfront_domain = module.storage.output_details.cf_domain
     redis_endpoint    = module.storage.output_details.redis_endpoint
   }
