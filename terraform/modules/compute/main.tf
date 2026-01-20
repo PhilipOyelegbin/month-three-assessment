@@ -176,7 +176,7 @@ resource "aws_launch_template" "api-lt" {
 
   user_data = base64encode(templatefile("${path.module}/user-data.sh", {
     project_name         = var.project_name
-    # cloudwatch_log_group = var.application_logs_name
+    cloudwatch_log_group = "var.application_logs_name"
     region               = var.region
   }))
 
