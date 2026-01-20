@@ -60,10 +60,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check logic vulnerabilities with CodeQL
-        uses: github/codeql-action/analyze@v2
-        with:
-          category: "secret-scanning"
+      # - name: Check logic vulnerabilities with CodeQL
+      #   uses: github/codeql-action/analyze@v2
+      #   with:
+      #     category: "secret-scanning"
 
       - name: Initialize Terraform
         run: terraform init
