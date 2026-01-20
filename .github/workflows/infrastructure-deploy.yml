@@ -51,8 +51,7 @@ jobs:
           cat <<'EOF' > ./terraform/terraform.tfvars
           aws_region = "eu-west-2"
           project_name = "muchtodo"
-          instance_type = "t3.micro"
-          environment = "${{ github.ref_name }}"
+          instance_type = "t3.mi
           EOF
 
       - name: Scan code for exposed secrets
@@ -113,7 +112,6 @@ jobs:
       #     aws_region = "eu-west-2"
       #     project_name = "muchtodo"
       #     instance_type = "t3.micro"
-      #     environment = "${{ github.ref_name }}"
       #     EOF
 
       - name: Download Terraform plan artifact
@@ -176,8 +174,7 @@ jobs:
           cat <<'EOF' > ./terraform/terraform.tfvars
           aws_region = "eu-west-2"
           project_name = "muchtodo"
-          instance_type = "t3.micro"
-          environment = "${{ github.ref_name }}"
+          instance_type = "t3.mi
           EOF
 
       - name: Initialize Terraform
