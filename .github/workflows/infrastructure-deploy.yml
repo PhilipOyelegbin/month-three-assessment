@@ -183,9 +183,9 @@ jobs:
 
       - name: Force Empty S3 Bucket
         run: |
-          BUCKET_NAME=$(jq -r '.resource_details.value.s3_bucket' tf-outputs.json)
-          echo "Emptying bucket: $BUCKET_NAME"
-          aws s3 rm s3://$BUCKET_NAME --recursive
+          # BUCKET_NAME=$(jq -r '.resource_details.value.s3_bucket' tf-outputs.json)
+          echo "Emptying bucket: ${{ secrets.BUCKET_NAME }}"
+          aws s3 rm s3://${{ secrets.BUCKET_NAME }} --recursive
         working-directory: ./terraform
         continue-on-error: true
 
