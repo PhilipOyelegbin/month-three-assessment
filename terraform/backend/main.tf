@@ -32,7 +32,7 @@ resource "aws_s3_account_public_access_block" "s3_public_access" {
 resource "aws_s3_bucket_versioning" "s3_versioning" {
   bucket = aws_s3_bucket.s3.id
   versioning_configuration {
-    status = "Enabled"
+    status = "Disabled"
   }
 }
 
