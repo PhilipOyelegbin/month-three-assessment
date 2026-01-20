@@ -51,7 +51,7 @@ jobs:
           cat <<'EOF' > ./terraform/terraform.tfvars
           aws_region = "eu-west-2"
           project_name = "muchtodo"
-          instance_type = "t3.mi
+          instance_type = "t3.micro"
           EOF
 
       - name: Scan code for exposed secrets
@@ -174,7 +174,7 @@ jobs:
           cat <<'EOF' > ./terraform/terraform.tfvars
           aws_region = "eu-west-2"
           project_name = "muchtodo"
-          instance_type = "t3.mi
+          instance_type = "t3.micro"
           EOF
 
       - name: Initialize Terraform
