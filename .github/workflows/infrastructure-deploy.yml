@@ -181,6 +181,12 @@ jobs:
         run: terraform init
         working-directory: ./terraform
 
+      - name: Download Terraform plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: ./terraform
+
       - name: Force Empty S3 Bucket
         run: |
           # BUCKET_NAME=$(jq -r '.resource_details.value.s3_bucket' tf-outputs.json)
