@@ -24,7 +24,7 @@ jobs:
       - name: Set up terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.7.5"
+          terraform_version: "1.14.3"
           terraform_wrapper: false
 
       - name: Configure AWS credentials
@@ -95,7 +95,7 @@ jobs:
       - name: Set up terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.7.5"
+          terraform_version: "1.14.3"
           terraform_wrapper: false
 
       - name: Configure AWS credentials
@@ -152,7 +152,7 @@ jobs:
       - name: Set up terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.7.5"
+          terraform_version: "1.14.3"
           terraform_wrapper: false
 
       - name: Configure AWS credentials
