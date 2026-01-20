@@ -174,11 +174,11 @@ resource "aws_launch_template" "api-lt" {
     name = aws_iam_instance_profile.ec2_instance_profile.name
   }
 
-  # user_data = base64encode(templatefile("${path.module}/user-data.sh", {
-  #   project_name         = var.project_name
-  #   cloudwatch_log_group = var.application_logs_name
-  #   region               = var.region
-  # }))
+  user_data = base64encode(templatefile("${path.module}/user-data.sh", {
+    project_name         = var.project_name
+    cloudwatch_log_group = "var.application_logs_name"
+    region               = var.region
+  }))
 
   tag_specifications {
     resource_type = "instance"
