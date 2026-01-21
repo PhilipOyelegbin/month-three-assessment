@@ -40,10 +40,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Check logic vulnerabilities with CodeQL
-      #   uses: github/codeql-action/analyze@v2
-      #   with:
-      #       category: "secret-scanning"
+      - name: Run unit tests
+        run: |
+          cd frontend/
+          npm test -- --watchAll=false
 
       - name: Build frontend app
         run: |
@@ -51,6 +51,11 @@ jobs:
           npm run build
         env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+
+      - name: Run npm audit
+        run: |
+          cd frontend/
+          npm audit --audit-level=moderate
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -87,22 +92,18 @@ jobs:
       - name: Deploy Frontend to AWS S3
         run: |
           aws s3 sync . s3://${{ secrets.BUCKET_NAME }} --delete
+          echo "Deployment to S3 completed."
 
-  # cleanup:
-  #   runs-on: ubuntu-latest
-  #   if: github.event_name == 'push' && github.ref == 'refs/heads/clean'
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+          echo "CloudFront cache invalidation initiated."
 
-  #     - name: Set up AWS CLI
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: "eu-west-2"
-
-  #     - name: Clean up resources
-  #       run: |
-  #         aws s3 rm s3://${{ secrets.BUCKET_NAME }} --recursive || echo "S3 bucket might not exist"
-  #         echo "Cleanup completed."
+      # - name: Send Slack Notification
+      #   if: always()
+      #   uses: rtCamp/action-slack-notify@v2
+      #   env:
+      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+      #     SLACK_MESSAGE: "Frontend deployment to S3 is complete! 🎉"

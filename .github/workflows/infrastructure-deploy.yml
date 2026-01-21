@@ -21,16 +21,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      # - uses: dorny/paths-filter@v3
-      #   id: filter
-      #   with:
-      #     filters: |
-      #       terraform:
-      #         - 'terraform/**'
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            terraform:
+              - 'terraform/**'
 
-      # - name: Run Terraform Plan
-      #   if: steps.filter.outputs.terraform == 'true'
-      #   run: echo "Changes detected in terraform, running plan..."
+      - name: Run Terraform Plan
+        if: steps.filter.outputs.terraform == 'true'
+        run: echo "Changes detected in terraform, running plan..."
 
       - name: Set up terraform
         uses: hashicorp/setup-terraform@v3
@@ -70,11 +70,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Check logic vulnerabilities with CodeQL
-      #   uses: github/codeql-action/analyze@v2
-      #   with:
-      #     category: "secret-scanning"
-
       - name: Initialize Terraform
         run: terraform init
         working-directory: ./terraform
@@ -104,16 +99,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # - uses: dorny/paths-filter@v3
-      #   id: filter
-      #   with:
-      #     filters: |
-      #       terraform:
-      #         - 'terraform/**'
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            terraform:
+              - 'terraform/**'
 
-      # - name: Run Terraform Apply
-      #   if: steps.filter.outputs.terraform == 'true'
-      #   run: echo "Changes detected in terraform, running apply..."
+      - name: Run Terraform Apply
+        if: steps.filter.outputs.terraform == 'true'
+        run: echo "Changes detected in terraform, running apply..."
 
       - name: Set up terraform
         uses: hashicorp/setup-terraform@v3
@@ -127,14 +122,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: "eu-west-2"
-
-      # - name: Create a tfvars file
-      #   run: |
-      #     cat <<'EOF' > ./terraform/terraform.tfvars
-      #     aws_region = "eu-west-2"
-      #     project_name = "muchtodo"
-      #     instance_type = "t3.micro"
-      #     EOF
 
       - name: Download Terraform plan artifact
         uses: actions/download-artifact@v4
@@ -163,6 +150,13 @@ jobs:
           echo "BUCKET_NAME=$(jq -r '.resource_details.value.s3_bucket' tf-outputs.json)" >> $GITHUB_ENV
         working-directory: ./terraform
         shell: bash
+
+      # - name: Send Slack Notification
+      #   if: always()
+      #   uses: rtCamp/action-slack-notify@v2
+      #   env:
+      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+      #     SLACK_MESSAGE: "Backend deployment to Docker on EC2 is complete! 🎉"
 
   cleanup:
     runs-on: ubuntu-latest
@@ -214,20 +208,6 @@ jobs:
           aws s3 rm s3://${{ secrets.BUCKET_NAME }} --recursive
         working-directory: ./terraform
         continue-on-error: true
-
-      # - name: Cleanup Docker on Server
-      #   uses: appleboy/ssh-action@v0.1.7
-      #   with:
-      #     host: ${{ secrets.SERVER_HOST }}
-      #     username: ${{ secrets.SERVER_USER }}
-      #     key: ${{ secrets.SERVER_SSH_KEY }}
-      #     port: ${{ secrets.SERVER_SSH_PORT }}
-      #     script: |
-      #       sudo docker stop muchtodo || true
-      #       sudo docker rm muchtodo || true
-      #       sudo docker rmi ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest || true
-      #       sudo docker system prune -af
-      #       echo "Cleanup completed."
 
       - name: Destroy Terraform-managed infrastructure
         run: terraform destroy -auto-approve
