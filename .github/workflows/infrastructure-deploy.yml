@@ -62,15 +62,15 @@ jobs:
           aws-region: "eu-west-2"
 
       - name: Create key-pair file and store private key in GitHub Actions environment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ssh-keygen -t ed25519 -f ./terraform/id_rsa -N "" -C "github-actions-deploy"
-          chmod 400 ./terraform/id_rsa
-          {
-            echo "SERVER_SSH_KEY_DATA<<EOF"
-            cat ./terraform/id_rsa
-            echo "EOF"
-          } >> "$GITHUB_ENV"
-          echo "::add-mask::$(cat ./terraform/id_rsa | tr -d '\n')"
+          ssh-keygen -t ed25519 -f id_rsa -N "" -C "github-actions-deploy"
+          chmod 400 id_rsa
+          SERVER_SSH_KEY_DATA=$(cat id_rsa)
+          gh secret set SERVER_SSH_KEY --body "$SERVER_SSH_KEY_DATA"
+          SERVER_SSH_KEY_DATA=""
+        working-directory: ./terraform
         shell: bash
 
       - name: Create a tfvars file
@@ -157,15 +157,23 @@ jobs:
 
       - name: Extract Outputs
         id: tf_outputs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Use -json to safely parse complex values
           terraform output -json > tf-outputs.json
 
-          # Map outputs to GITHUB_ENV for subsequent steps
-          echo "SERVER_HOST=$(jq -r '.resource_details.value.asg_public_ips[0]' tf-outputs.json)" >> $GITHUB_ENV
-          echo "REDIS_ADDR=$(jq -r '.resource_details.value.redis_endpoint' tf-outputs.json)" >> $GITHUB_ENV
-          echo "VITE_API_BASE_URL=http://$(jq -r '.resource_details.value.load_balancer_dns' tf-outputs.json)" >> $GITHUB_ENV
-          echo "BUCKET_NAME=$(jq -r '.resource_details.value.s3_bucket' tf-outputs.json)" >> $GITHUB_ENV
+          # Extract values from tf-outputs.json
+          SERVER_IP=$(jq -r '.resource_details.value.asg_public_ips[0]' tf-outputs.json)
+          REDIS_ADDR=$(jq -r '.resource_details.value.redis_endpoint' tf-outputs.json)
+          LB_DNS="http://$(jq -r '.resource_details.value.load_balancer_dns' tf-outputs.json)"
+          S3_BUCKET=$(jq -r '.resource_details.value.s3_bucket' tf-outputs.json)
+
+          # Persist as Repository Secrets
+          gh secret set SERVER_HOST --body "$SERVER_IP"
+          gh secret set REDIS_ADDR --body "$REDIS_ADDR"
+          gh secret set VITE_API_BASE_URL --body "$LB_DNS"
+          gh secret set BUCKET_NAME --body "$S3_BUCKET"
         working-directory: ./terraform
         shell: bash
 
