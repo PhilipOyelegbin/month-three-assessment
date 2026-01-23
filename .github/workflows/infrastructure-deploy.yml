@@ -56,7 +56,7 @@ jobs:
 
       - name: Create key-pair file and store private key in GitHub Actions environment
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           ssh-keygen -t ed25519 -f id_rsa -N "" -C "github-actions-deploy"
           chmod 440 id_rsa
@@ -145,7 +145,7 @@ jobs:
       - name: Extract Outputs
         id: tf_outputs
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           # Use -json to safely parse complex values
           terraform output -json > tf-outputs.json
