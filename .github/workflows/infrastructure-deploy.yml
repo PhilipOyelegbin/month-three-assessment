@@ -33,13 +33,6 @@ jobs:
     if: needs.changes.outputs.terraform == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            terraform:
-              - 'terraform/**'
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -117,15 +110,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            terraform:
-              - 'terraform/**'
-
       - name: Run Terraform Apply
-        if: steps.filter.outputs.terraform == 'true'
         run: echo "Changes detected in terraform, running apply..."
 
       - name: Set up terraform
