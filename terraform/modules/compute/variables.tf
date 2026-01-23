@@ -41,13 +41,13 @@ variable "region" {
 variable "enable_alb_access_logs" {
   description = "Enable ALB access logs"
   type        = bool
-  default     = false
+  default     = true
 }
 
-# variable "alb_logs_s3_bucket" {
-#   description = "S3 bucket for ALB access logs"
-#   type        = string
-# }
+variable "alb_logs_bucket_name" {
+  description = "S3 bucket name for ALB access logs"
+  type        = string
+}
 
 variable "enable_s3_access" {
   description = "Enable S3 access for EC2 instances"
@@ -66,13 +66,7 @@ variable "enable_ssm_access" {
   default     = true
 }
 
-# variable "application_logs_name" {
-#   description = "The cloudwatch application log name"
-#   type = string
-# }
-
-# variable "application_ports" {
-#   description = "Additional application ports to open"
-#   type        = list(number)
-#   default     = []
-# }
+variable "application_logs_name" {
+  description = "The cloudwatch application log name"
+  type        = string
+}

@@ -8,7 +8,7 @@ variable "bucket_name" {
   type        = string
 }
 
-variable "alb_logs_s3_bucket" {
+variable "alb_logs_bucket" {
   description = "ALB logs bucket name"
   type        = string
 }
@@ -43,5 +43,5 @@ variable "allowed_cidr_blocks" {
 
 variable "application_sg_id" {
   description = "Application security group ID to allow access to Redis"
-  type = string
+  type        = string
 }

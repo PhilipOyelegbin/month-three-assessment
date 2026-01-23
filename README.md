@@ -14,10 +14,12 @@ Created a comprehensive CI/CD pipeline that automates the entire deployment proc
    cd month-three-assessment
    ```
 
-2. Update the file permission of the files in **scripts** folder
+2. Update the file permission of the files in **scripts** folder and create keygen for the infrastucture
 
    ```bash
    chmod 740 scripts/*
+
+   ssh-keygen -t ed25519 -f ./terraform/id_rsa -N ""
    ```
 
 3. Run the infrastructure deployment script
@@ -25,6 +27,8 @@ Created a comprehensive CI/CD pipeline that automates the entire deployment proc
    ```bash
    ./scripts/deploy-infrastructure.sh
    ```
+
+   ![snapshot](./evidence/infra.png)
 
 4. Update the environmental variables appropriately
    - frontend/.env
@@ -43,17 +47,29 @@ Created a comprehensive CI/CD pipeline that automates the entire deployment proc
    ./scripts/deploy-frontend.sh
    ```
 
+   ![snapshot](./evidence/backend.png)
+   ![snapshot](./evidence/frontend.png)
+
 7. Run the healh check script to confirm the services are healthy
 
    ```bash
    ./scripts/health-check.sh
    ```
 
-8. Destroy the infrastructure by running the rollback script
+   ![snapshot](./evidence/health.png)
+
+8. The application should be accessible via the cloudfront dns url and load balancer url.
+
+   ![snapshot](./evidence/preview1.png)
+   ![snapshot](./evidence/preview2.png)
+
+9. Destroy the infrastructure by running the rollback script
 
    ```bash
    ./scripts/rollback.sh
    ```
+
+   ![snapshot](./evidence/rollback.png)
 
 ---
 
@@ -82,9 +98,14 @@ The CI-CD pipeline runs based on the updated folder, if the **terraform** folder
 
 ## Task Completed
 
-- [x] Created instances
-- [x] Created s3
-- [ ] Created s3 for logging but having issues with access to the bucket
+- [x] Created Auto Scaling Group for backend EC2 instances
+- [x] Created Application Load Balancer with target group
+- [x] Created S3 bucket for frontend hosting with static website configuration
+- [x] Created CloudFront distribution for global content delivery
+- [x] Created ElastiCache Redis cluster for caching
+- [x] Created CloudWatch Log Groups for application logging
+- [x] Created IAM roles and policies for EC2 instances to access CloudWatch
+- [x] Created Security Groups for all components
 - [x] Scripts created and functional
 - [x] Pipeline created and functional
 

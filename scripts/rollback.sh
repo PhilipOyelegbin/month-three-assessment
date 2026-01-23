@@ -4,6 +4,7 @@ set -e
 
 # Variables
 S3_BUCKET_NAME="muchtodo-bucket"
+LOG_BUCKET_NAME="muchtodo-alb-logs-bucket"
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 PROJECT_ROOT=$(dirname "$SCRIPT_DIR")
 
@@ -12,6 +13,11 @@ echo "--- Starting Rollback Process for MuchToDo ---"
 echo "Remove MuchToDo frontend deployed files from s3 bucket..."
 aws s3 rm s3://$S3_BUCKET_NAME --recursive
 echo "Removed MuchToDo frontend deployed files from s3 bucket."
+
+# Log bucket rollback
+echo "Remove MuchToDo log files from log bucket..."
+aws s3 rm s3://$LOG_BUCKET_NAME --recursive
+echo "Removed MuchToDo log files from log bucket."
 
 # Infrastructure rollback
 echo "Rolling back infrastructure by destroying Terraform-managed resources..."

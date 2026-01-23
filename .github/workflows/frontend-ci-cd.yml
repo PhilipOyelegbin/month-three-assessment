@@ -31,9 +31,8 @@ jobs:
           node-version: "22"
 
       - name: Install dependencies and setup .env file
-        run: |
-          cd frontend/
-          npm install
+        run: npm ci
+        working-directory: ./frontend
 
       - name: Scan code for exposed secrets
         uses: gitleaks/gitleaks-action@v2
@@ -41,21 +40,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run unit tests
-        run: |
-          cd frontend/
-          npm test -- --watchAll=false
+        run: npm test -- --watchAll=false
+        working-directory: ./frontend
 
       - name: Build frontend app
-        run: |
-          cd frontend/
-          npm run build
+        run: npm run build
+        working-directory: ./frontend
         env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
 
       - name: Run npm audit
-        run: |
-          cd frontend/
-          npm audit --audit-level=moderate
+        run: npm audit --audit-level=moderate
+        working-directory: ./frontend
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

@@ -3,7 +3,7 @@
 set -e
 
 # Variables
-BUCKET_NAME="muchtodo-bucket"
+BUCKET_NAME="muchtodo-bucket"   # Replace with your S3 bucket name
 FRONTEND_DIR="frontend/dist"
 
 echo "--- Starting deployment of MuchToDo frontend ---"

@@ -82,7 +82,7 @@ jobs:
         run: terraform plan -out=tfplan.binary
         working-directory: ./terraform
 
-      - name: Upload Terraform plan artifact
+      - name: Upload files to artifact
         uses: actions/upload-artifact@v4
         with:
           name: terraform-plan
@@ -123,7 +123,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: "eu-west-2"
 
-      - name: Download Terraform plan artifact
+      - name: Download files from artifact
         uses: actions/download-artifact@v4
         with:
           name: terraform-plan
@@ -206,6 +206,8 @@ jobs:
         run: |
           echo "Emptying bucket: ${{ secrets.BUCKET_NAME }}"
           aws s3 rm s3://${{ secrets.BUCKET_NAME }} --recursive
+          echo "Emptying bucket: ${{ secrets.LOG_BUCKET_NAME }}"
+          aws s3 rm s3://${{ secrets.LOG_BUCKET_NAME }} --recursive
         working-directory: ./terraform
         continue-on-error: true
 

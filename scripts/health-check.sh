@@ -4,8 +4,8 @@ set -e
 
 # Variables
 CONTAINER_NAME="muchtodo"
-LOAD_BALANCER_URL="muchtodo-app-lb-424642814.eu-west-2.elb.amazonaws.com"
-CLOUDFRONT_URL="d2otn4w083sh8t.cloudfront.net"
+LOAD_BALANCER_URL="muchtodo-app-lb-581292386.eu-west-2.elb.amazonaws.com"   # Replace with your Load Balancer DNS
+CLOUDFRONT_URL="d19a0ryp66qqyq.cloudfront.net"  # Replace with your CloudFront Distribution Domain Name
 
 echo "---Starting health checks for MuchToDo application ---"
 

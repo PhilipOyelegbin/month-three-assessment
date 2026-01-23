@@ -19,9 +19,10 @@ echo \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 apt-get update
-apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+apt-get install nginx docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 systemctl start docker
 systemctl enable docker
+systemctl start nginx
 
 # Install CloudWatch agent
 apt-get install -y wget

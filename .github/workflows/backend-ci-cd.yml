@@ -47,7 +47,7 @@ jobs:
           LOG_FORMAT: "json"
           INTEGRATION: true
           # ENABLE_CACHE: true
-          REDIS_ADDR: ${{ secrets.REDIS_ADDR }}
+          REDIS_ADDR: "${{ secrets.REDIS_ADDR }}:6379"
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
 
       - name: Install dependencies and setup .env file
@@ -126,13 +126,14 @@ jobs:
             LOG_FORMAT=json
             INTEGRATION=false
             # ENABLE_CACHE=true
-            REDIS_ADDR=${{ secrets.REDIS_ADDR }}
+            REDIS_ADDR="${{ secrets.REDIS_ADDR }}:6379"
             REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
             EOF
 
+            echo "Stopping nginx if running..."
+            sudo systemctl stop nginx || true
+
             echo "--- Deploy rolling update using docker compose ---"
-            sudo apt-get update
-            sudo apt-get install -y docker-compose-plugin
             cat <<'EOF' > docker-compose.yml
             services:
               muchtodo:
@@ -146,13 +147,6 @@ jobs:
             sudo docker compose down
             sudo docker compose up -d --remove-orphans
             echo "Docker containers are up and running."
-
-            # echo "--- Deploying the latest Docker image ---"
-            # sudo docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-            # sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
-            # sudo docker stop muchtodo || true
-            # sudo docker rm muchtodo || true
-            # sudo docker run -d -v $(pwd)/.env:/app/.env:ro --name muchtodo -p 80:8080 ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
             echo "Deployment completed."
 
       - name: Run Smoke Tests (Verify API is up)
