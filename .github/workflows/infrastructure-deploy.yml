@@ -7,7 +7,7 @@ on:
     branches: [staging]
 
 jobs:
-  plan:
+  changes:
     if: >
       github.event_name == 'push' && (
         github.ref == 'refs/heads/main' ||
@@ -15,11 +15,11 @@ jobs:
       ) ||
       github.event_name == 'pull_request' && github.base_ref == 'staging'
     runs-on: ubuntu-latest
+    outputs:
+      terraform: ${{ steps.filter.outputs.terraform }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: dorny/paths-filter@v3
         id: filter
@@ -28,8 +28,24 @@ jobs:
             terraform:
               - 'terraform/**'
 
+  plan:
+    needs: changes
+    if: needs.changes.outputs.terraform == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            terraform:
+              - 'terraform/**'
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Run Terraform Plan
-        if: steps.filter.outputs.terraform == 'true'
         run: echo "Changes detected in terraform, running plan..."
 
       - name: Set up terraform
@@ -93,8 +109,10 @@ jobs:
 
   apply:
     runs-on: ubuntu-latest
-    needs: plan
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - changes
+      - plan
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.terraform == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
