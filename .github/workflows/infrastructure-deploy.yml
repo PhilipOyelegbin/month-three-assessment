@@ -61,7 +61,6 @@ jobs:
           ssh-keygen -t ed25519 -f id_rsa -N "" -C "github-actions-deploy"
           chmod 440 id_rsa
           echo "Storing SSH Private Key as Repository Secret..."
-          ls -la
           SERVER_SSH_KEY_DATA=$(cat id_rsa)
           gh secret set SERVER_SSH_KEY --body "$SERVER_SSH_KEY_DATA"
           SERVER_SSH_KEY_DATA=""
