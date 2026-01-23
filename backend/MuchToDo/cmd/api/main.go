@@ -228,5 +228,5 @@ func startServer(router *gin.Engine, port string) {
 		os.Exit(1)
 	}
 
-	slog.Info("Server exiting.")
+	slog.Info("Server exiting ...")
 }
