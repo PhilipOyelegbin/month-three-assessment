@@ -15,7 +15,7 @@ function LandingPage() {
         <div className="text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
             Organize Your Life with{" "}
-            <span className="text-indigo-600">MuchToDo</span>
+            <span className="text-indigo-600">MuchToDo App</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             A simple, powerful task management app that helps you stay organized
