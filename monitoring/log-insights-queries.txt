@@ -1,0 +1,5 @@
+# Query to find the most frequent 404 errors
+fields @timestamp, @message
+| filter status = 404
+| stats count(*) as count by path
+| sort count desc

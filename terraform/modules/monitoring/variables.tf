@@ -3,6 +3,11 @@ variable "project_name" {
   type        = string
 }
 
+variable "region" {
+  description = "AWS Region"
+  type        = string
+}
+
 variable "vpc_id" {
   description = "VPC ID"
   type        = string

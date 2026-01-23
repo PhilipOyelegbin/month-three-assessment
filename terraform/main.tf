@@ -57,8 +57,8 @@ module "compute" {
   ec2_instance_type     = var.instance_type
   ami_id                = data.aws_ami.ubuntu.id
   s3_bucket_name        = module.storage.output_details.bucket_name
-  # alb_logs_s3_bucket    = "${var.project_name}-alb-logs-bucket"
-  # application_logs_name = "/${var.project_name}/application"
+  alb_logs_bucket_name  = "${var.project_name}-alb-logs-bucket"
+  application_logs_name = "/${var.project_name}/application"
 }
 
 # Provisinion storage resources via Storage module
@@ -66,17 +66,18 @@ module "storage" {
   source             = "./modules/storage"
   project_name       = var.project_name
   bucket_name        = "${var.project_name}-bucket"
-  alb_logs_s3_bucket = "${var.project_name}-alb-logs-bucket"
+  alb_logs_bucket    = "${var.project_name}-alb-logs-bucket"
   vpc_id             = module.network.output_details.id
   private_subnet_ids = module.network.output_details.private_subnet_id
   application_sg_id  = module.compute.output_details.app_security_group_id
 }
 
 # Provision monitoring resources via Monitoring module
-# module "monitoring" {
-#   source             = "./modules/monitoring"
-#   project_name       = var.project_name
-#   vpc_id             = module.network.output_details.id
-#   vpc_cidr_blocks    = [module.network.output_details.cidr_block]
-#   application_sg_ids = [module.compute.output_details.app_security_group_id]
-# }
+module "monitoring" {
+  source             = "./modules/monitoring"
+  project_name       = var.project_name
+  region             = var.aws_region
+  vpc_id             = module.network.output_details.id
+  vpc_cidr_blocks    = [module.network.output_details.cidr_block]
+  application_sg_ids = [module.compute.output_details.app_security_group_id]
+}

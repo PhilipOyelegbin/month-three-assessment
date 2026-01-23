@@ -1,41 +1,13 @@
 #============================================ S3 Bucket ============================================#
 # Create S3 Bucket for frontend deployment
 resource "aws_s3_bucket" "s3_bucket" {
-  bucket = var.bucket_name
-  force_destroy  = true
+  bucket        = var.bucket_name
+  force_destroy = true
 
   tags = {
     Name = "${var.project_name}-bucket"
   }
 }
-
-# resource "aws_s3_bucket" "alb_logs_bucket" {
-#   bucket = var.alb_logs_s3_bucket
-
-#   tags = {
-#     Name = "${var.project_name}-alb_logs_bucket"
-#   }
-# }
-
-# # S3 bucket policy that allows alb to access the bucket
-# resource "aws_s3_bucket_policy" "alb_log_bucket_policy" {
-#   bucket = aws_s3_bucket.alb_logs_bucket.id
-
-#   policy = jsonencode({
-#     Version = "2012-10-17"
-#     Statement = [
-#       {
-#         Effect = "Allow"
-#         Principal = {
-#           # This is the dedicated ALB account ID for eu-west-2
-#           AWS = "arn:aws:iam::652711504416:root"
-#         }
-#         Action   = "s3:PutObject"
-#         Resource = "arn:aws:s3:::muchtodo-alb-logs-bucket/AWSLogs/117139745244/*"
-#       }
-#     ]
-#   })
-# }
 
 # Block public access to the bucket
 resource "aws_s3_bucket_public_access_block" "block_public_access" {
@@ -146,27 +118,6 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   }
 }
 
-# Optional: Custom cache policy for more control
-# resource "aws_cloudfront_cache_policy" "cache_policy" {
-#   name        = "${var.project_name}-cache-policy"
-#   comment     = "Cache policy for ${var.project_name}"
-#   default_ttl = 3600
-#   max_ttl     = 86400
-#   min_ttl     = 0
-#   
-#   parameters_in_cache_key_and_forwarded_to_origin {
-#     cookies_config {
-#       cookie_behavior = "none"
-#     }
-#     headers_config {
-#       header_behavior = "none"
-#     }
-#     query_strings_config {
-#       query_string_behavior = "none"
-#     }
-#   }
-# }
-
 # S3 bucket policy that allows CloudFront OAC to access the bucket
 resource "aws_s3_bucket_policy" "bucket_policy" {
   bucket = aws_s3_bucket.s3_bucket.id
@@ -268,8 +219,6 @@ resource "aws_elasticache_cluster" "redis" {
   subnet_group_name    = aws_elasticache_subnet_group.redis_subnet_group.name
   security_group_ids   = [aws_security_group.redis_sg.id]
   apply_immediately    = true
-  # Multi-AZ configuration for production (requires cluster mode disabled)
-  # availability_zones = var.availability_zones
 
   # Snapshot configuration
   snapshot_retention_limit = 7
@@ -279,4 +228,69 @@ resource "aws_elasticache_cluster" "redis" {
   tags = {
     Name = "${var.project_name}-redis"
   }
+}
+
+#============================================ ALB Logging Bucket ============================================#
+# S3 Bucket for ALB access logs
+resource "aws_s3_bucket" "alb_logs_bucket" {
+  bucket = var.alb_logs_bucket
+
+  tags = {
+    Name = "${var.project_name}-alb_logs_bucket"
+  }
+}
+
+# Block public access to the ALB logs bucket
+resource "aws_s3_bucket_public_access_block" "alb_logs_block_public_access" {
+  bucket                  = aws_s3_bucket.alb_logs_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# Disable versioning for ALB logs bucket
+resource "aws_s3_bucket_versioning" "alb_logs_versioning" {
+  bucket = aws_s3_bucket.alb_logs_bucket.id
+  versioning_configuration {
+    status = "Disabled"
+  }
+}
+
+# Enable default encryption
+resource "aws_s3_bucket_server_side_encryption_configuration" "alb_encryption" {
+  bucket = aws_s3_bucket.alb_logs_bucket.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+# S3 bucket policy that allows alb to access the bucket
+resource "aws_s3_bucket_policy" "alb_log_bucket_policy" {
+  bucket = aws_s3_bucket.alb_logs_bucket.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowALBLogDelivery"
+        Effect = "Allow"
+        Principal = {
+          Service = "logdelivery.elasticloadbalancing.amazonaws.com"
+        }
+        Action   = "s3:PutObject"
+        Resource = "arn:aws:s3:::muchtodo-alb-logs-bucket/AWSLogs/117139745244/*"
+        Action   = "s3:PutObject"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.alb_logs_bucket.bucket}/alb-logs/AWSLogs/117139745244/*"
+        Condition = {
+          StringEquals = {
+            "s3:x-amz-acl" = "bucket-owner-full-control"
+          }
+        }
+      }
+    ]
+  })
 }

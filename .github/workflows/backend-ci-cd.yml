@@ -47,7 +47,7 @@ jobs:
           LOG_FORMAT: "json"
           INTEGRATION: true
           # ENABLE_CACHE: true
-          REDIS_ADDR: ${{ secrets.REDIS_ADDR }}
+          REDIS_ADDR: "${{ secrets.REDIS_ADDR }}:6379"
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
 
       - name: Install dependencies and setup .env file
@@ -60,11 +60,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Check logic vulnerabilities with CodeQL
-      #   uses: github/codeql-action/analyze@v2
-      #   with:
-      #       category: "secret-scanning"
-
       - name: Run the unit tests for Go
         run: |
           cd backend/MuchToDo/
@@ -75,10 +70,23 @@ jobs:
           cd backend/MuchToDo/
           INTEGRATION=true go test -v --tags=integration ./...
 
+      - name: Run Go Linter (golangci-lint)
+        uses: reviewdog/action-golangci-lint@v2
+        with:
+          workdir: backend/MuchToDo/
+
       - name: Build the docker image
         run: |
           cd backend/
           docker build -t muchtodo:latest .
+
+      - name: Scan Docker Image for vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "muchtodo:latest"
+          format: "table"
+          exit-code: "1"
+          severity: "CRITICAL,HIGH"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -96,6 +104,18 @@ jobs:
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Debug Info
+        run: |
+          echo "Deploying to server: ${{ secrets.SERVER_HOST }}"
+          echo "Server user: ${{ secrets.SERVER_USER }}"
+          echo "Server key: ${{ secrets.SERVER_SSH_KEY }}"
+          echo "Server port: ${{ secrets.SERVER_SSH_PORT }}"
+
       - name: Connect to the server via ssh
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -118,30 +138,56 @@ jobs:
             LOG_FORMAT=json
             INTEGRATION=false
             # ENABLE_CACHE=true
-            REDIS_ADDR=${{ secrets.REDIS_ADDR }}
+            REDIS_ADDR="${{ secrets.REDIS_ADDR }}:6379"
             REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
             EOF
 
-            echo "--- Deploying the latest Docker image ---"
-            sudo docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-            sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
+            echo "Stopping nginx if running..."
+            sudo systemctl stop nginx || true
+
+            echo "--- Deploy rolling update using docker compose ---"
+            cat <<'EOF' > docker-compose.yml
+            services:
+              muchtodo:
+                image: ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
+                ports:
+                  - "80:8080"
+                volumes:
+                  - ./.env:/app/.env:ro
+                restart: always
+            EOF
+            sudo docker compose down
+            sudo docker compose up -d --remove-orphans
+            echo "Docker containers are up and running."
+            echo "Deployment completed."
+
+      - name: Run Smoke Tests (Verify API is up)
+        run: |
+          # Use the actual host and a health endpoint
+          curl --fail http://${{ secrets.SERVER_HOST }}/health || exit 1 
+          echo "Smoke test passed. API is healthy."
+
+      # - name: Send Slack Notification
+      #   if: always()
+      #   uses: rtCamp/action-slack-notify@v2
+      #   env:
+      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+      #     SLACK_MESSAGE: "Backend deployment to Docker on EC2 is complete! 🎉"
+
+  cleanup:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/clean'
+    steps:
+      - name: Connect to the server via ssh
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_SSH_PORT }}
+          script: |
             sudo docker stop muchtodo || true
             sudo docker rm muchtodo || true
-            sudo docker run -d -v $(pwd)/.env:/app/.env:ro --name muchtodo -p 80:8080 ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest
-  # cleanup:
-  #   runs-on: ubuntu-latest
-  #   if: github.event_name == 'push' && github.ref == 'refs/heads/clean'
-  #   steps:
-  #     - name: Connect to the server via ssh
-  #       uses: appleboy/ssh-action@v0.1.7
-  #       with:
-  #         host: ${{ secrets.SERVER_HOST }}
-  #         username: ${{ secrets.SERVER_USER }}
-  #         key: ${{ secrets.SERVER_SSH_KEY }}
-  #         port: ${{ secrets.SERVER_SSH_PORT }}
-  #         script: |
-  #           sudo docker stop muchtodo || true
-  #           sudo docker rm muchtodo || true
-  #           sudo docker rmi ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest || true
-  #           sudo docker system prune -af
-  #           echo "Cleanup completed."
+            sudo docker rmi ${{ secrets.DOCKER_HUB_USERNAME }}/muchtodo:latest || true
+            sudo docker system prune -af
+            echo "Cleanup completed."

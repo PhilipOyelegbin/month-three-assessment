@@ -5,49 +5,17 @@ resource "aws_cloudwatch_log_group" "application_logs" {
   retention_in_days = var.log_retention_days
 
   tags = {
-    Name = "${var.project_name}-app-logs"
+    Name        = "${var.project_name}-app-logs"
+    Application = "backend"
   }
 }
 
-# Nginx/Access logs
-resource "aws_cloudwatch_log_group" "access_logs" {
-  name              = "/${var.project_name}/nginx/access"
+# Consolidated App/Nginx Logs
+resource "aws_cloudwatch_log_group" "nginx_logs" {
+  for_each          = toset(["access", "error"])
+  name              = "/${var.project_name}/nginx/${each.key}"
   retention_in_days = var.log_retention_days
-
-  tags = {
-    Name = "${var.project_name}-access-logs"
-  }
-}
-
-# Error logs
-resource "aws_cloudwatch_log_group" "error_logs" {
-  name              = "/${var.project_name}/nginx/error"
-  retention_in_days = var.log_retention_days
-
-  tags = {
-    Name = "${var.project_name}-error-logs"
-  }
-}
-
-# System logs
-resource "aws_cloudwatch_log_group" "system_logs" {
-  name              = "/${var.project_name}/system"
-  retention_in_days = var.log_retention_days
-
-  tags = {
-    Name = "${var.project_name}-system-logs"
-  }
-}
-
-# Load Balancer access logs
-resource "aws_cloudwatch_log_group" "alb_access_logs" {
-  count             = var.enable_alb_access_logs ? 1 : 0
-  name              = "/aws/alb/${var.project_name}-alb"
-  retention_in_days = var.alb_log_retention_days
-
-  tags = {
-    Name = "${var.project_name}-alb-access-logs"
-  }
+  log_group_class   = "INFREQUENT_ACCESS"
 }
 
 #============================================ Security Groups ============================================#
@@ -76,4 +44,31 @@ resource "aws_security_group" "cloudwatch_agent_sg" {
   tags = {
     Name = "${var.project_name}-cloudwatch-agent-sg"
   }
+}
+
+#============================================ Cloudwatch Dashboard ============================================#
+resource "aws_cloudwatch_dashboard" "main" {
+  dashboard_name = "${var.project_name}-ApplicationMonitoring"
+  dashboard_body = templatefile("../${path.root}/monitoring/cloudwatch-dashboard.json", {
+    project_name = var.project_name
+    region       = var.region
+  })
+}
+
+locals {
+  alarms = jsondecode(file("../${path.root}/monitoring/alarm-definitions.json"))
+}
+
+resource "aws_cloudwatch_metric_alarm" "app_alarms" {
+  for_each = { for a in local.alarms : a.alarm_name => a }
+
+  alarm_name          = "${var.project_name}-${each.value.alarm_name}"
+  comparison_operator = each.value.comparison_operator
+  evaluation_periods  = each.value.evaluation_periods
+  metric_name         = each.value.metric_name
+  namespace           = each.value.namespace
+  period              = each.value.period
+  statistic           = each.value.statistic
+  threshold           = each.value.threshold
+  # alarm_actions       = [var.sns_topic_arn]
 }
