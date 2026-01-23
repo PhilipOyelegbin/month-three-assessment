@@ -1,0 +1,73 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "AWS/EC2",
+            "CPUUtilization",
+            "AutoScalingGroupName",
+            "${project_name}-api-asg"
+          ]
+        ],
+        "period": 300,
+        "stat": "Average",
+        "region": "${region}",
+        "title": "ASG Average CPU Utilization"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "AWS/ApplicationELB",
+            "RequestCount",
+            "LoadBalancer",
+            "app/${project_name}-app-lb/..."
+          ],
+          [
+            ".",
+            "TargetResponseTime",
+            ".",
+            ".",
+            "TargetGroup",
+            "targetgroup/${project_name}-api-tg/...",
+            { "stat": "Average" }
+          ]
+        ],
+        "region": "${region}",
+        "title": "ALB Traffic & Latency"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 6,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "AWS/ElastiCache",
+            "CacheHits",
+            "CacheClusterId",
+            "${project_name}-redis"
+          ],
+          [".", "CacheMisses", ".", "."]
+        ],
+        "region": "${region}",
+        "title": "Redis Cache Performance"
+      }
+    }
+  ]
+}

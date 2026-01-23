@@ -35,17 +35,6 @@ resource "aws_security_group" "application_sg" {
     security_groups = [aws_security_group.alb_sg.id]
   }
 
-  # dynamic "ingress" {
-  #   for_each = var.application_ports
-  #   content {
-  #     description     = "Application port ${ingress.value}"
-  #     from_port       = ingress.value
-  #     to_port         = ingress.value
-  #     protocol        = "tcp"
-  #     security_groups = [aws_security_group.alb_sg.id]
-  #   }
-  # }
-
   ingress {
     description = "ICMP for troubleshooting"
     from_port   = -1
@@ -112,14 +101,11 @@ resource "aws_lb" "app-lb" {
   security_groups            = [aws_security_group.alb_sg.id]
   enable_deletion_protection = false
 
-  # dynamic "access_logs" {
-  #   for_each = var.enable_alb_access_logs ? [1] : []
-  #   content {
-  #     bucket  = var.alb_logs_s3_bucket
-  #     prefix  = "${var.project_name}-alb"
-  #     enabled = true
-  #   }
-  # }
+  access_logs {
+    bucket  = var.alb_logs_bucket_name
+    prefix  = "alb-logs"
+    enabled = true
+  }
 
   tags = {
     Name = "${var.project_name}-app-lb"
@@ -137,7 +123,7 @@ resource "aws_lb_target_group" "api-tg" {
     path                = "/health"
     protocol            = "HTTP"
     matcher             = "200"
-    interval            = 30
+    interval            = 60
     timeout             = 5
     healthy_threshold   = 2
     unhealthy_threshold = 2
@@ -171,12 +157,12 @@ resource "aws_launch_template" "api-lt" {
   vpc_security_group_ids = [aws_security_group.application_sg.id]
 
   iam_instance_profile {
-    name = aws_iam_instance_profile.ec2_instance_profile.name
+    name = aws_iam_instance_profile.ec2_log_profile.name
   }
 
   user_data = base64encode(templatefile("${path.module}/user-data.sh", {
     project_name         = var.project_name
-    cloudwatch_log_group = "var.application_logs_name"
+    cloudwatch_log_group = var.application_logs_name
     region               = var.region
   }))
 
@@ -213,7 +199,7 @@ resource "aws_autoscaling_group" "api-asg" {
   }
 
   # Health check configuration
-  health_check_type         = "EC2"
+  health_check_type         = "ELB"
   health_check_grace_period = 300
 
   lifecycle {
@@ -234,7 +220,7 @@ data "aws_instances" "asg_instances" {
 #============================================ IAM Roles & Policies ============================================#
 # IAM role for EC2 instances
 resource "aws_iam_role" "ec2_role" {
-  name = "${var.project_name}-ec2-role"
+  name = "${var.project_name}-EC2CloudWatchLoggingRole"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -254,137 +240,21 @@ resource "aws_iam_role" "ec2_role" {
   }
 }
 
-# IAM policy for CloudWatch Logs access
-resource "aws_iam_policy" "cloudwatch_logs_policy" {
-  name        = "${var.project_name}-cloudwatch-logs-policy"
-  description = "Policy for EC2 instances to send logs to CloudWatch"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "logs:DescribeLogStreams",
-          "logs:CreateLogGroup"
-        ]
-        Resource = [
-          "arn:aws:logs:*:*:log-group:/${var.project_name}/*:*",
-          "arn:aws:logs:*:*:log-group:/${var.project_name}/*"
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "logs:PutMetricData",
-          "cloudwatch:PutMetricData"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-
-  tags = {
-    Name = "${var.project_name}-cloudwatch-logs-policy"
-  }
-}
-
-# IAM policy for S3 access (if needed for application)
-resource "aws_iam_policy" "s3_access_policy" {
-  count = var.enable_s3_access ? 1 : 0
-
-  name        = "${var.project_name}-s3-access-policy"
-  description = "Policy for EC2 instances to access S3"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:ListBucket"
-        ]
-        Resource = [
-          "arn:aws:s3:::${var.s3_bucket_name}",
-          "arn:aws:s3:::${var.s3_bucket_name}/*"
-        ]
-      }
-    ]
-  })
-
-  tags = {
-    Name = "${var.project_name}-s3-access-policy"
-  }
-}
-
-# IAM policy for SSM Session Manager (optional but recommended)
-resource "aws_iam_policy" "ssm_policy" {
-  count = var.enable_ssm_access ? 1 : 0
-
-  name        = "${var.project_name}-ssm-policy"
-  description = "Policy for SSM Session Manager access"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "ssm:UpdateInstanceInformation",
-          "ssmmessages:CreateControlChannel",
-          "ssmmessages:CreateDataChannel",
-          "ssmmessages:OpenControlChannel",
-          "ssmmessages:OpenDataChannel",
-          "s3:GetEncryptionConfiguration"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-
-  tags = {
-    Name = "${var.project_name}-ssm-policy"
-  }
-}
-
-# Attach policies to the IAM role
-resource "aws_iam_role_policy_attachment" "cloudwatch_logs_attachment" {
+# Attach the managed policy for CloudWatch Agent
+resource "aws_iam_role_policy_attachment" "cw_agent_attach" {
   role       = aws_iam_role.ec2_role.name
-  policy_arn = aws_iam_policy.cloudwatch_logs_policy.arn
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
 
-resource "aws_iam_role_policy_attachment" "s3_attachment" {
-  count = var.enable_s3_access ? 1 : 0
-
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = aws_iam_policy.s3_access_policy[0].arn
+# Create the Instance Profile (to be used in your ASG Launch Template)
+resource "aws_iam_instance_profile" "ec2_log_profile" {
+  name = "${var.project_name}-EC2CloudWatchInstanceProfile"
+  role = aws_iam_role.ec2_role.name
 }
 
-resource "aws_iam_role_policy_attachment" "ssm_attachment" {
-  count = var.enable_ssm_access ? 1 : 0
-
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = aws_iam_policy.ssm_policy[0].arn
-}
-
-# Attach AWS managed policies
-resource "aws_iam_role_policy_attachment" "ssm_managed_attachment" {
-  count = var.enable_ssm_access ? 1 : 0
-
+# AWS Managed Policy for SSM Access
+resource "aws_iam_role_policy_attachment" "ssm_core" {
+  count      = var.enable_ssm_access ? 1 : 0
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
-# IAM instance profile
-resource "aws_iam_instance_profile" "ec2_instance_profile" {
-  name = "${var.project_name}-ec2-instance-profile"
-  role = aws_iam_role.ec2_role.name
-
-  tags = {
-    Name = "${var.project_name}-ec2-instance-profile"
-  }
 }
