@@ -109,13 +109,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Debug Info
-        run: |
-          echo "Deploying to server: ${{ secrets.SERVER_HOST }}"
-          echo "Server user: ${{ secrets.SERVER_USER }}"
-          echo "Server key: ${{ secrets.SERVER_SSH_KEY }}"
-          echo "Server port: ${{ secrets.SERVER_SSH_PORT }}"
-
       - name: Connect to the server via ssh
         uses: appleboy/ssh-action@v0.1.7
         with:
