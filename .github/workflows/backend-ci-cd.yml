@@ -156,8 +156,8 @@ jobs:
 
       - name: Run Smoke Tests (Verify API is up)
         run: |
-          # Use the actual host and a health endpoint
-          curl --fail http://${{ secrets.VITE_API_BASE_URL }}/health || exit 1 
+          echo "Running smoke test to verify API (http://${{ secrets.VITE_API_BASE_URL }}/health) is up..."
+          curl --fail "http://${{ secrets.VITE_API_BASE_URL }}/health" || exit 1 
           echo "Smoke test passed. API is healthy."
 
       # - name: Send Slack Notification
