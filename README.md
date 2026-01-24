@@ -14,15 +14,28 @@ Created a comprehensive CI/CD pipeline that automates the entire deployment proc
    cd month-three-assessment
    ```
 
-2. Update the file permission of the files in **scripts** folder and create keygen for the infrastucture
+2. Setup the remote state bucket for the infrastructure
 
    ```bash
+   cd terraform/backend
+
+   terraform init
+   terraform plan
+
+   terraform apply
+   ```
+
+3. Update the file permission of the files in **scripts** folder and create keygen for the infrastucture
+
+   ```bash
+   cd ../../
+
    chmod 740 scripts/*
 
    ssh-keygen -t ed25519 -f ./terraform/id_rsa -N ""
    ```
 
-3. Run the infrastructure deployment script
+4. Run the infrastructure deployment script
 
    ```bash
    ./scripts/deploy-infrastructure.sh
@@ -30,17 +43,17 @@ Created a comprehensive CI/CD pipeline that automates the entire deployment proc
 
    ![snapshot](./evidence/infra.png)
 
-4. Update the environmental variables appropriately
+5. Update the environmental variables appropriately
    - frontend/.env
    - backend/MuchToDo/.env
 
-5. Update the script file below with appropriate variable details from the infrastructure output
+6. Update the script file below with appropriate variable details from the infrastructure output
    - scripts/deploy-backend.sh
    - scripts/deploy-frontend.sh
    - scripts/health-check.sh
    - scripts/rollback.sh
 
-6. Run the deploy script to deploy the application
+7. Run the deploy script to deploy the application
 
    ```bash
    ./scripts/deploy-backend.sh
@@ -50,7 +63,7 @@ Created a comprehensive CI/CD pipeline that automates the entire deployment proc
    ![snapshot](./evidence/backend.png)
    ![snapshot](./evidence/frontend.png)
 
-7. Run the healh check script to confirm the services are healthy
+8. Run the healh check script to confirm the services are healthy
 
    ```bash
    ./scripts/health-check.sh
@@ -58,18 +71,18 @@ Created a comprehensive CI/CD pipeline that automates the entire deployment proc
 
    ![snapshot](./evidence/health.png)
 
-8. The application should be accessible via the cloudfront dns url and load balancer url.
+9. The application should be accessible via the cloudfront dns url and load balancer url.
 
    ![snapshot](./evidence/preview1.png)
    ![snapshot](./evidence/preview2.png)
 
-9. Destroy the infrastructure by running the rollback script
+10. Destroy the infrastructure by running the rollback script
 
-   ```bash
-   ./scripts/rollback.sh
-   ```
+    ```bash
+    ./scripts/rollback.sh
+    ```
 
-   ![snapshot](./evidence/rollback.png)
+    ![snapshot](./evidence/rollback.png)
 
 ---
 
