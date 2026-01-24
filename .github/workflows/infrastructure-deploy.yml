@@ -154,12 +154,16 @@ jobs:
           REDIS_ADDR=$(jq -r '.resource_details.value.redis_endpoint' tf-outputs.json)
           LB_DNS="http://$(jq -r '.resource_details.value.load_balancer_dns' tf-outputs.json)"
           S3_BUCKET=$(jq -r '.resource_details.value.s3_bucket' tf-outputs.json)
+          LOG_BUCKET=$(jq -r '.resource_details.value.alb_log_bucket' tf-outputs.json)
+          CLOUDFRONT_ID=$(jq -r '.resource_details.value.cloudfront_id' tf-outputs.json)
 
           # Persist as Repository Secrets
           gh secret set SERVER_HOST --body "$SERVER_IP"
           gh secret set REDIS_ADDR --body "$REDIS_ADDR"
           gh secret set VITE_API_BASE_URL --body "$LB_DNS"
           gh secret set BUCKET_NAME --body "$S3_BUCKET"
+          gh secret set LOG_BUCKET_NAME --body "$LOG_BUCKET"
+          gh secret set CLOUDFRONT_ID --body "$CLOUDFRONT_ID"
         working-directory: ./terraform
         shell: bash
 

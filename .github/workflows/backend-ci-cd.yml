@@ -46,7 +46,7 @@ jobs:
           LOG_LEVEL: "DEBUG"
           LOG_FORMAT: "json"
           INTEGRATION: true
-          # ENABLE_CACHE: true
+          ENABLE_CACHE: true
           REDIS_ADDR: "${{ secrets.REDIS_ADDR }}:6379"
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
 
@@ -130,7 +130,7 @@ jobs:
             LOG_LEVEL=INFO
             LOG_FORMAT=json
             INTEGRATION=false
-            # ENABLE_CACHE=true
+            ENABLE_CACHE=true
             REDIS_ADDR="${{ secrets.REDIS_ADDR }}:6379"
             REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
             EOF
