@@ -4,7 +4,54 @@ Created a comprehensive CI/CD pipeline that automates the entire deployment proc
 
 ---
 
-## Setup Instructions
+## 📂 Project Structure
+
+```
+starttech/
+├── .github/
+│   └── workflows/
+│       └── infrastructure-deploy.yml
+│       ├── frontend-ci-cd.yml
+│       ├── backend-ci-cd.yml
+├── frontend/
+├── backend/
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── modules/
+│   │   ├── networking/
+│   │   ├── compute/
+│   │   ├── storage/
+│   │   └── monitoring/
+│   └── terraform.tfvars.example
+├── scripts/
+│   ├── deploy-infrastructure.sh
+│   ├── deploy-frontend.sh
+│   ├── deploy-backend.sh
+│   ├── health-check.sh
+│   └── rollback.sh
+├── monitoring/
+│   ├── cloudwatch-dashboard.json
+│   ├── alarm-definitions.json
+│   └── log-insights-queries.txt
+└── README.md
+```
+
+---
+
+## 🛠️ Prerequisites
+
+Before starting, ensure you have the following installed:
+
+- Terraform
+- Docker Engine
+- NodeJs
+- Go 1.21+
+
+---
+
+## 👨🏽‍💻 Setup Instructions
 
 1. Clone the repo and change directory using the command below
 
@@ -86,7 +133,7 @@ Created a comprehensive CI/CD pipeline that automates the entire deployment proc
 
 ---
 
-## CI/CD Implementation
+## ♻️ CI/CD Implementation
 
 The CI-CD pipeline runs based on the updated folder, if the **terraform** folder is updated the `infrastructure-deploy.yml` pipeline is triggered, likewise when the **backend** folder is updated the `backend-ci-cd.yml` pipeline is triggered, also the `frontend-ci-cd.yml` pipeline is triggered on **frontend** folder update and pushed to github.
 
@@ -109,7 +156,7 @@ The CI-CD pipeline runs based on the updated folder, if the **terraform** folder
 
 ---
 
-## Task Completed
+## 🎯 Task Completed
 
 - [x] Created Auto Scaling Group for backend EC2 instances
 - [x] Created Application Load Balancer with target group
