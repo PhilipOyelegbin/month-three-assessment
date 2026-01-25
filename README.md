@@ -110,7 +110,7 @@ Before starting, ensure you have the following installed:
    ![snapshot](./evidence/backend.png)
    ![snapshot](./evidence/frontend.png)
 
-8. Run the healh check script to confirm the services are healthy
+8. Run the health check script to confirm the services are healthy
 
    ```bash
    ./scripts/health-check.sh
@@ -118,7 +118,7 @@ Before starting, ensure you have the following installed:
 
    ![snapshot](./evidence/health.png)
 
-9. The application should be accessible via the cloudfront dns url and load balancer url.
+9. The application should be accessible via the CloudFront DNS URL and the load balancer URL.
 
    ![snapshot](./evidence/preview1.png)
    ![snapshot](./evidence/preview2.png)
@@ -135,24 +135,28 @@ Before starting, ensure you have the following installed:
 
 ## ♻️ CI/CD Implementation
 
-The CI-CD pipeline runs based on the updated folder, if the **terraform** folder is updated the `infrastructure-deploy.yml` pipeline is triggered, likewise when the **backend** folder is updated the `backend-ci-cd.yml` pipeline is triggered, also the `frontend-ci-cd.yml` pipeline is triggered on **frontend** folder update and pushed to github.
+The CI-CD pipeline runs based on the updated folder. If the **terraform** folder is updated, the `infrastructure-deploy.yml` pipeline is triggered. When the **backend** folder is updated, the `backend-ci-cd.yml` pipeline is triggered, and the `frontend-ci-cd.yml` pipeline is triggered on **frontend** folder update and pushed to GitHub.
 
 **Infrastructure Pipeline**
 
-- Plan: This phase is triggered when an update is made to the **terraform** folder and pushed to the **stagging** branch
-- Apply: This phase is triggered when a PR is merged to the **main** branch from the **stagging** branch.
+- Plan: This phase is triggered when an update is made to the **terraform** folder and pushed to the **staging** branch
+- Apply: This phase is triggered when a PR is merged to the **main** branch from the **staging** branch.
 - Cleanup: This phase is triggered when a PR is merged to the **clean** branch.
 
 **Backend Pipeline**
 
-- Build: This phase is triggered when an update is made to the **backend** folder and pushed to the **stagging** branch
-- Deploy: This phase is triggered when a PR is merged to the **main** branch from the **stagging** branch.
+- Build: This phase is triggered when an update is made to the **backend** folder and pushed to the **staging** branch
+- Deploy: This phase is triggered when a PR is merged to the **main** branch from the **staging** branch.
 - Cleanup: This phase is triggered when a PR is merged to the **clean** branch.
 
 **Frontend Pipeline**
 
-- Build: This phase is triggered when an update is made to the **frontend** folder and pushed to the **stagging** branch
-- Deploy: This phase is triggered when a PR is merged to the **main** branch from the **stagging** branch.
+- Build: This phase is triggered when an update is made to the **frontend** folder and pushed to the **staging** branch
+- Deploy: This phase is triggered when a PR is merged to the **main** branch from the **staging** branch.
+
+**Demo video**
+
+https://github.com/user-attachments/assets/7cdcbec8-0185-41f2-9c79-1b72aaff9876
 
 ---
 
