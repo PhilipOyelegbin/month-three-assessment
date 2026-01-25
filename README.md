@@ -155,6 +155,7 @@ The CI-CD pipeline runs based on the updated folder. If the **terraform** folder
 - Deploy: This phase is triggered when a PR is merged to the **main** branch from the **staging** branch.
 
 **Demo video**
+
 https://github.com/user-attachments/assets/7cdcbec8-0185-41f2-9c79-1b72aaff9876
 
 ---
